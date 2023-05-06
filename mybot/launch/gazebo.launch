@@ -1,0 +1,29 @@
+<?xml version="1.0"?>
+<launch>
+    <arg name="ns" default="/"/>
+    <arg name="rviz_config_file" default="$(find mybot)/config/mybot.rviz"/>
+    <arg name="use_joint_gui" default="true"/>
+
+    <param name="$(arg ns)robot_description" command="xacro '$(find mybot)/urdf/mybot.urdf.xacro'"/>
+    
+    <!--robot state publisher-->
+    <node ns="$(arg ns)" pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher"/>
+
+    <!--joint state publisher-->
+    <group if="$(arg use_joint_gui)">
+        <node ns="$(arg ns)" pkg="joint_state_publisher_gui" type="joint_state_publisher_gui" name="joint_state_publisher_gui" />
+    </group>
+    
+    <!--gazebo world-->
+    <include file="$(find gazebo_ros)/launch/empty_world.launch">
+        <arg name="paused" value="false"/>
+        <arg name="use_sim_time" value="true"/>
+    </include>
+    
+    <!--spawn model-->
+    <node ns="$(arg ns)" pkg="gazebo_ros" type="spawn_model" name="spawning_urdf"
+          args="-urdf -model mybot -param robot_description" />
+
+    <!--rviz-->
+    <node pkg="rviz" type="rviz" name="rviz" args="-d $(arg rviz_config_file)"/>
+</launch>

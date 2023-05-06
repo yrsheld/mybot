@@ -1,0 +1,31 @@
+<?xml version="1.0"?>
+<launch>
+    <param name="mybot/robot_description" command="xacro '$(find mybot)/urdf/mybot.urdf.xacro'"/>
+    <arg name="rviz_config_file" default="$(find mybot)/config/mybot.rviz"/>
+    
+    <!--gazebo world-->
+    <include file="$(find mybot)/launch/gazebo.launch">
+        <arg name="ns" value="/mybot"/>
+        <arg name="use_joint_gui" value="false"/>
+    </include>
+
+    <!--load controller configs-->
+    <rosparam file="$(find mybot)/config/controller.yaml" command="load"/>
+
+    <!--spawn controllers-->
+    <node pkg="controller_manager" type="spawner" name="mybot_controller_spawner" 
+          ns="/mybot" 
+          args="ext_joint_position_controller
+                wheel_diff_drive_controller
+                joint_state_controller" />
+
+    <!--rqt steering the wheels-->
+    <node pkg="rqt_robot_steering" type="rqt_robot_steering" name="rqt_robot_steering">
+        <param name="default_topic" value="/mybot/wheel_diff_drive_controller/cmd_vel"/>
+    </node>
+    
+    <!--control the extention link-->
+    <!--select the topic: /mybot/ext_joint_position_controller/command -->
+    <node pkg="rqt_gui" type="rqt_gui" name="rqt_gui" />
+
+</launch>
