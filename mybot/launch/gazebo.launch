@@ -4,7 +4,7 @@
     <arg name="rviz_config_file" default="$(find mybot)/config/mybot.rviz"/>
     <arg name="use_joint_gui" default="true"/>
 
-    <param name="$(arg ns)robot_description" command="xacro '$(find mybot)/urdf/mybot.urdf.xacro'"/>
+    <param name="$(arg ns)/robot_description" command="xacro '$(find mybot)/urdf/mybot.urdf.xacro'"/>
     
     <!--robot state publisher-->
     <node ns="$(arg ns)" pkg="robot_state_publisher" type="robot_state_publisher" name="robot_state_publisher"/>
@@ -20,7 +20,7 @@
         <arg name="use_sim_time" value="true"/>
     </include>
     
-    <!--spawn model-->
+    <!--spawn mybot-->
     <node ns="$(arg ns)" pkg="gazebo_ros" type="spawn_model" name="spawning_urdf"
           args="-urdf -model mybot -param robot_description" />
 

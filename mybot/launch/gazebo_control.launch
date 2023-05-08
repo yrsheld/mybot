@@ -1,7 +1,5 @@
 <?xml version="1.0"?>
 <launch>
-    <param name="mybot/robot_description" command="xacro '$(find mybot)/urdf/mybot.urdf.xacro'"/>
-    <arg name="rviz_config_file" default="$(find mybot)/config/mybot.rviz"/>
     
     <!--gazebo world-->
     <include file="$(find mybot)/launch/gazebo.launch">

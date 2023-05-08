@@ -1,0 +1,239 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <xacro:include filename="$(find mybot)/urdf/inertial_macros.xacro"/>
+
+    <xacro:property name="chassis_mass" value="0.5"/>
+    <xacro:property name="chassis_width" value="0.3"/>
+    <xacro:property name="chassis_height" value="0.1"/>
+    <xacro:property name="chassis_depth" value="0.4"/>
+
+    <xacro:property name="wheel_radius" value="0.05"/>
+    <xacro:property name="wheel_length" value="0.04"/>
+    <xacro:property name="wheel_mass" value="0.1"/>
+    <xacro:property name="wheel_offset_x" value="0.12"/>
+    <xacro:property name="wheel_offset_y" value="${(chassis_width+wheel_length)/2}"/>
+    <xacro:property name="wheel_offset_z" value="-0.03"/>
+
+    <xacro:property name="caster_radius" value="0.02"/>
+    <xacro:property name="caster_mass" value="0.5"/>
+    <xacro:property name="caster_offset_x" value="-0.18"/>
+    <xacro:property name="caster_offset_z" value="${wheel_offset_z-wheel_radius+caster_radius}"/>
+
+    <xacro:property name="top_mass" value="0.05"/>
+    <xacro:property name="top_length" value="0.1"/>
+    <xacro:property name="top_radius" value="0.08"/>
+
+    <xacro:property name="ext_radius" value="0.02"/>
+    <xacro:property name="ext_length" value="0.1"/>
+    <xacro:property name="ext_mass" value="0.02"/>
+
+    <material name="white">
+        <color rgba="1.0 1.0 0.8 1"/>
+    </material>
+
+    <material name="blue">
+        <color rgba="0.2 0.2 1 1"/>
+    </material>
+
+    <material name="black">
+        <color rgba="0.0 0.0 0.0 1.0"/>
+    </material>
+
+    <!--base link-->
+    <link name="mybot/base_link">
+        
+    </link>
+
+    <!--chassis link-->
+    <link name="mybot/chassis_link">
+        <xacro:inertial_box mass="${chassis_mass}" x="${chassis_depth}" y="${chassis_width}" z="${chassis_height}">
+            <origin xyz="0.0 0.0 0.0"/>
+        </xacro:inertial_box>
+        <visual>
+            <origin xyz="0.0 0.0 0.0"/>
+            <geometry>
+                <box size="${chassis_depth} ${chassis_width} ${chassis_height}"/>
+            </geometry>
+            <material name="blue"/>
+        </visual>
+        <collision>
+            <origin xyz="0.0 0.0 0.0"/>
+            <geometry>
+                <box size="${chassis_depth} ${chassis_width} ${chassis_height}"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <joint name="mybot/chassis_joint" type="fixed">
+        <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+        <parent link="mybot/base_link"/>
+        <child link="mybot/chassis_link"/>
+    </joint>
+
+    <gazebo reference="mybot/chassis_link">
+        <material>Gazebo/Blue</material>
+    </gazebo>
+
+    <!--wheel xacro-->
+    <xacro:macro name="wheel" params="name side x y">
+        <link name="mybot/wheel_${name}_link">
+            <xacro:inertial_cylinder mass="${wheel_mass}" length="${wheel_length}" radius="${wheel_radius}">
+                <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+            </xacro:inertial_cylinder>
+            <visual>
+                <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+                <geometry>
+                    <cylinder radius="${wheel_radius}" length="${wheel_length}"/>
+                </geometry>
+                <material name="black"/>
+            </visual>
+            <collision>
+                <origin xyz="0.0 0.0 0.0" rpy="0.0 0.0 0.0"/>
+                <geometry>
+                    <cylinder radius="${wheel_radius}" length="${wheel_length}"/>
+                </geometry>
+            </collision>
+        </link>
+
+        <joint name="mybot/wheel_${name}_joint" type="continuous">
+            <origin xyz="${x} ${y} ${wheel_offset_z}" rpy="${-side*pi/2} 0.0 0.0"/>
+            <parent link="mybot/base_link"/>
+            <child link="mybot/wheel_${name}_link"/>
+            <axis xyz="0.0 0.0 ${side}"/>
+        </joint>
+
+        <!--wheel motor-->
+        <transmission name="mybot/wheel_${name}_joint_trans">
+            <type>transmission/SimpleTransmission</type>
+            <joint name="mybot/wheel_${name}_joint">
+                <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
+            </joint>
+            <actuator name="mybot/wheel_${name}_joint_motor">
+                <hardwareInterface>hardware_interface/VelocityJointInterface</hardwareInterface>
+                <mechanicalReduction>1</mechanicalReduction>
+            </actuator>
+        </transmission>
+
+        <gazebo reference="mybot/wheel_${name}_link">
+            <material>Gazebo/Black</material>
+        </gazebo>
+
+    </xacro:macro>
+
+    <!--wheel creating using xacro:macro-->
+    <xacro:wheel name="right" side="-1" x="${wheel_offset_x}" y="${wheel_offset_y}"/>
+    <xacro:wheel name="left" side="1" x="${wheel_offset_x}" y="${-wheel_offset_y}"/>
+
+    <!--caster wheel-->
+    <link name="mybot/caster_link">
+        <visual>
+            <geometry>
+                <sphere radius="${caster_radius}"/>
+            </geometry>
+            <material name="white"/>
+        </visual>
+        <collision>
+            <geometry>
+                <sphere radius="${caster_radius}"/>
+            </geometry>
+        </collision>
+        <xacro:inertial_sphere mass="${caster_mass}" radius="${caster_radius}">
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+        </xacro:inertial_sphere>
+    </link>
+
+    <joint name="mybot/caster_joint" type="fixed">
+        <parent link="mybot/chassis_link"/>
+        <child link="mybot/caster_link"/>
+        <origin xyz="${caster_offset_x} 0 ${caster_offset_z}"/>
+    </joint>
+
+    <gazebo reference="mybot/caster_link">
+        <material>Gazebo/White</material>
+        <mu1>0.0001</mu1>
+        <mu2>0.0001</mu2>
+    </gazebo>
+
+    <!--top link-->
+    <link name="mybot/top_link">
+        <xacro:inertial_cylinder mass="${top_mass}" length="${top_length}" radius="${top_radius}">
+            <origin xyz="0.0 0.0 0.0"/>
+        </xacro:inertial_cylinder>
+        <visual>
+            <geometry>
+                <cylinder radius="${top_radius}" length="${top_length}"/>
+            </geometry>
+            <material name="white"/>
+        </visual>
+        <collision>
+            <geometry>
+                <cylinder radius="${top_radius}" length="${top_length}"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <joint name="mybot/top_joint" type="fixed">
+        <origin xyz="0.0 0.0 ${chassis_height/2}"/>
+        <parent link="mybot/chassis_link"/>
+        <child link="mybot/top_link"/>
+    </joint>
+
+    <gazebo reference="mybot/top_link">
+        <material>Gazebo/White</material>
+    </gazebo>
+
+    <!--extension link-->
+    <link name="mybot/ext_link">
+        <xacro:inertial_cylinder mass="${ext_mass}" length="${ext_length}" radius="${ext_radius}">
+            <origin xyz="0.0 0.0 0.0"/>
+        </xacro:inertial_cylinder>
+        <visual>
+            <origin xyz="0.0 0.0 0.0"/>
+            <geometry>
+                <cylinder radius="${ext_radius}" length="${ext_length}"/>
+            </geometry>
+            <material name="black"/>
+        </visual>
+        <collision>
+            <origin xyz="0.0 0.0 0.0"/>
+            <geometry>
+                <cylinder radius="${ext_radius}" length="${ext_length}"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <joint name="mybot/ext_joint" type="prismatic">
+        <origin xyz="${top_radius/2} 0.0 ${-top_length/4}"/>
+        <parent link="mybot/top_link"/>
+        <child link="mybot/ext_link"/>
+        <axis xyz="0.0 0.0 1.0"/>
+        <limit lower="0.0" upper="${ext_length}" effort="100.0" velocity="0.2"/>
+    </joint>
+
+    <!--extension motor-->
+    <transmission name="mybot/ext_joint_trans">
+        <type>transmission/SimpleTransmission</type>
+        <joint name="mybot/ext_joint">
+            <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+        </joint>
+        <actuator name="mybot/ext_joint_motor">
+            <hardwareInterface>hardware_interface/PositionJointInterface</hardwareInterface>
+            <mechanicalReduction>1</mechanicalReduction>
+        </actuator>
+    </transmission>
+
+    <gazebo reference="mybot/ext_link">
+        <material>Gazebo/Black</material>
+    </gazebo>
+
+    <!--gazebo ros control plugin-->
+    <gazebo>
+        <plugin name="gazebo_ros_control" filename="libgazebo_ros_control.so">
+            <!--robotNamespace>/mybot</robotNamespace-->
+            <robotSimType>gazebo_ros_control/DefaultRobotHWSim</robotSimType>
+            <legacyModeNS>true</legacyModeNS>
+        </plugin>
+    </gazebo>
+
+</robot>

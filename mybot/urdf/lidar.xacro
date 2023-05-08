@@ -1,0 +1,62 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <!--lidar link-->
+    <xacro:include filename="$(find mybot)/urdf/inertial_macros.xacro"/>
+    
+    <link name="mybot/lidar_link">
+        <xacro:inertial_cylinder mass="0.02" length="0.02" radius="0.02">
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+        </xacro:inertial_cylinder>
+        <visual>
+            <origin xyz="0.0 0.0 0.0"/>
+            <geometry>
+                <cylinder radius="0.02" length="0.02"/>
+            </geometry>
+            <material name="black"/>
+        </visual>
+        <collision>
+            <origin xyz="0.0 0.0 0.0"/>
+            <geometry>
+                <cylinder radius="0.02" length="0.02"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <joint name="mybot/lidar_joint" type="fixed">
+        <origin xyz="0.15 0.0 0.06" rpy="0.0 0.0 0.0"/>
+        <parent link="mybot/chassis_link"/>
+        <child link="mybot/lidar_link"/>
+    </joint>
+
+    <gazebo reference="mybot/lidar_link">
+        <material>Gazebo/Black</material>
+
+        <sensor name="mybot/lidar" type="ray">
+            <pose> 0 0 0 0 0 0 </pose>
+            <visualize>false</visualize>
+            <update_rate>10</update_rate>
+            <ray> 
+                <scan>
+                    <horizontal>
+                        <samples>180</samples>
+                        <min_angle>-1.57</min_angle>
+                        <max_angle>1.57</max_angle>
+                    </horizontal>
+                </scan>
+                <range>
+                    <min>0.3</min>
+                    <max>12</max>
+                </range>
+            </ray>
+
+            <plugin name="lidar_controller" filename="libgazebo_ros_laser.so">
+                <topicName>laser/scan</topicName>
+                <outputType>sensor_msgs/LaserScan</outputType>
+                <frameName>lidar_link</frameName>
+            </plugin>
+        </sensor>
+    </gazebo>
+
+    
+</robot>

@@ -1,0 +1,76 @@
+<?xml version="1.0"?>
+<robot xmlns:xacro="http://www.ros.org/wiki/xacro">
+
+    <xacro:include filename="$(find mybot)/urdf/inertial_macros.xacro"/>
+    
+    <!--camera link-->
+    <link name="mybot/camera_link">
+        <xacro:inertial_box mass="0.03" x="0.01" y="0.02" z="0.01">
+            <origin xyz="0 0 0" rpy="0 0 0"/>
+        </xacro:inertial_box>
+        <visual>
+            <origin xyz="0.0 0.0 0.0"/>
+            <geometry>
+                <box size="0.01 0.02 0.01"/>
+            </geometry>
+            <material name="black"/>
+        </visual>
+        <collision>
+            <origin xyz="0.0 0.0 0.0"/>
+            <geometry>
+                <box size="0.01 0.02 0.01"/>
+            </geometry>
+        </collision>
+    </link>
+
+    <joint name="mybot/camera_joint" type="fixed">
+        <origin xyz="0.205 0.0 0.0" rpy="0.0 0.0 0.0"/>
+        <parent link="mybot/chassis_link"/>
+        <child link="mybot/camera_link"/>
+    </joint>
+
+    <!--camera optical link-->
+    <link name="mybot/camera_optical_link"></link>
+
+    <joint name="mybot/camera_optical_joint" type="fixed">
+        <origin xyz="0.0 0.0 0.0" rpy="-1.57 0.0 -1.57"/>
+        <parent link="mybot/camera_link"/>
+        <child link="mybot/camera_optical_link"/>
+    </joint>
+
+    <!-- depth camera -->
+    <gazebo reference="mybot/camera_link">
+        <material>Gazebo/Black</material>
+        <sensor type="depth" name="depth_camera">
+            <update_rate>30.0</update_rate>
+            <visualize>true</visualize>
+            <camera>
+                <horizontal_fov>1.3962634</horizontal_fov>
+                <image>
+                    <width>800</width>
+                    <height>800</height>
+                    <format>B8G8R8</format>
+                </image>
+                <clip>
+                    <near>0.02</near>
+                    <far>8.0</far>
+                </clip>
+                <noise>
+                    <type>gaussian</type>
+                    <!-- Noise is sampled independently per pixel on each frame.
+                    That pixel's noise value is added to each of its color
+                    channels, which at that point lie in the range [0,1]. -->
+                    <mean>0.0</mean>
+                    <stddev>0.007</stddev>
+                </noise>
+            </camera>
+
+            <plugin name="depth_camera_controller" filename="libgazebo_ros_openni_kinect.so">
+                <cameraName>depth_camera</cameraName>
+                <frameName>camera_optical_link</frameName>
+                <min_depth>0.1</min_depth>
+                <max_depth>100</max_depth>
+            </plugin>
+        </sensor>
+    </gazebo>
+</robot>

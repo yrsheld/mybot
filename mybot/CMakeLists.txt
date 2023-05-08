@@ -11,6 +11,9 @@ find_package(catkin REQUIRED COMPONENTS
   geometry_msgs
   rospy
   std_msgs
+  gazebo_msgs
+  gazebo_plugins
+  gazebo_ros
 )
 
 ## System dependencies are found with CMake's conventions
