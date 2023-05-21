@@ -1,4 +1,2 @@
-# ROS Projects
-Detailed notes - [link](https://hackmd.io/@yrsheld/SyxCsCQN3)
-
-
+# mybot
+Driving a simple mobile robot with gazebo & ros_control.
